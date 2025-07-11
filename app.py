@@ -4,7 +4,13 @@ import requests
 from bs4 import BeautifulSoup
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
+from dotenv import load_dotenv
+import openai
 import os
+
+
+# Load environment variables from .env
+load_dotenv()
 
 # --- CONFIG ---
 OPENAI_API_KEY = os.getenv(OPENAI_API_KEY)
