@@ -7,7 +7,7 @@ from langchain.prompts import ChatPromptTemplate
 import os
 
 # --- CONFIG ---
-OPENAI_API_KEY = os.getenv("Open-Api-Key-Here")
+OPENAI_API_KEY = os.getenv(OPENAI_API_KEY)
 
 # --- HELPER FUNCTIONS ---
 def extract_text_from_pdf(uploaded_file):
