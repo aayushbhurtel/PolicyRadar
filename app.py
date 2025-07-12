@@ -26,7 +26,7 @@ llm = ChatOpenAI(
 summary_prompt = ChatPromptTemplate.from_template("""
 You are a helpful civic assistant. Summarize the following congressional bill using this format:
 
-**One sentence summary**: One sentence summary.  
+**TL;DR**: One sentence summary.  
 **Key Points**:  
 - Bullet 1  
 - Bullet 2  
@@ -96,7 +96,12 @@ if option == "📄 Upload PDF":
 
 # Handle URL input
 if option == "🔗 Enter URL":
-    url = st.text_input("Enter a public bill URL")
+    st.markdown("""
+⚠️ **Note**: Only static `.xml` or `.html` pages are supported.  
+Try this example bill:  
+[https://www.congress.gov/119/bills/s1046/BILLS-119s1046is.xml](https://www.congress.gov/119/bills/s1046/BILLS-119s1046is.xml)
+""")
+    url = st.text_input("Enter a public bill URL", value="https://www.congress.gov/119/bills/s1046/BILLS-119s1046is.xml")
     if st.button("🔍 Summarize URL"):
         if url:
             with st.spinner("Fetching and processing page..."):
