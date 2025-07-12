@@ -9,7 +9,8 @@ from langchain_core.output_parsers import StrOutputParser
 
 # Load API Key from .env
 load_dotenv()
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+#DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+os.environ["DEEPSEEK_API_KEY"] = st.secrets["DEEPSEEK_API_KEY"]
 
 # --- Streamlit Config ---
 st.set_page_config(page_title="PolicyRadar", layout="centered")
