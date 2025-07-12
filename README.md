@@ -10,9 +10,9 @@
 - Built with DeepSeek, Streamlit, and LangChain
 
 ## Demo streamline URL
-```bash
+
 https://policyradar-rwpm2dz6wf47nf2i2mr5r3.streamlit.app/
-```
+
 
 ## Run Locally
 
