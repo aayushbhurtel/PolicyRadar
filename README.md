@@ -9,12 +9,15 @@
 - Get summary and questions for your ZIP code
 - Built with DeepSeek, Streamlit, and LangChain
 
+## Demo streamline URL
+```bash
+https://policyradar-rwpm2dz6wf47nf2i2mr5r3.streamlit.app/
+```
+
 ## Run Locally
 
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
 
-## Demo streamline URL
-```bash
-https://policyradar-rwpm2dz6wf47nf2i2mr5r3.streamlit.app/
+
