@@ -43,7 +43,7 @@ llm = ChatOpenAI(
 prompt_template = ChatPromptTemplate.from_template("""
 You are a helpful civic assistant. Summarize the following congressional bill using this format:
 
-**TL;DR**: One sentence summary.  
+**One Sentence Summary**: One sentence summary.  
 **Key Points**:  
 - Bullet 1  
 - Bullet 2  
@@ -59,28 +59,64 @@ chain = prompt_template | llm | StrOutputParser()
 
 # --- Input Options ---
 option = st.radio("Choose input method:", ("📄 Upload PDF", "🔗 Enter URL"))
-
 bill_text = None
+summary_triggered = False
 
+# --- PDF Input Block ---
 if option == "📄 Upload PDF":
     uploaded_file = st.file_uploader("Upload a congressional bill (PDF)", type=["pdf"])
-    if uploaded_file and st.button("🔍 Summarize PDF"):
-        with st.spinner("Extracting text from PDF..."):
-            bill_text = extract_text_from_pdf(uploaded_file)
+    if st.button("🔍 Summarize PDF"):
+        summary_triggered = True
+        if uploaded_file:
+            with st.spinner("Extracting text from PDF..."):
+                bill_text = extract_text_from_pdf(uploaded_file)
+        else:
+            st.warning("Please upload a PDF before summarizing.")
 
+# --- URL Input Block ---
 elif option == "🔗 Enter URL":
     url = st.text_input("Enter a link to a bill or policy page:")
-    if url and st.button("🔍 Summarize URL"):
-        with st.spinner("Fetching and extracting text..."):
-            bill_text = extract_text_from_url(url)
+    if st.button("🔍 Summarize URL"):
+        summary_triggered = True
+        if url:
+            with st.spinner("Fetching and extracting text..."):
+                bill_text = extract_text_from_url(url)
+        else:
+            st.warning("Please enter a valid URL before summarizing.")
 
 # --- Summarization ---
-if bill_text:
+if summary_triggered and bill_text:
     with st.spinner("Summarizing with DeepSeek..."):
-        summary = chain.invoke({"text": bill_text[:15000]})  # avoid overflow
+        summary = chain.invoke({"text": bill_text[:15000]})  # truncate if needed
 
     st.markdown("### 🧠 Summary")
     st.markdown(summary)
+
+
+# --- Q&A Section ---
+if bill_text:
+    st.markdown("### ❓ Ask Questions About This Bill")
+    user_question = st.text_input("Enter your question:", placeholder="e.g., Who will enforce this policy?")
+    
+    if st.button("💬 Ask"):
+        with st.spinner("Thinking..."):
+            qa_prompt = ChatPromptTemplate.from_template("""
+You are a helpful policy assistant. Given the following bill text, answer the user's question concisely and accurately.
+
+Bill:
+{text}
+
+Question:
+{question}
+
+Answer in plain English, and cite sections from the bill when helpful.
+""")
+            qa_chain = qa_prompt | llm | StrOutputParser()
+            answer = qa_chain.invoke({"text": bill_text[:15000], "question": user_question})
+        
+        st.markdown("**Answer:**")
+        st.markdown(answer)
+
 
 # --- Footer ---
 st.markdown("""
