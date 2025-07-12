@@ -9,7 +9,7 @@
 - Get summary and questions for your ZIP code
 - Built with DeepSeek, Streamlit, and LangChain
 
-## Demo streamline URL
+## Demo Streamlit URL
 
 https://policyradar-rwpm2dz6wf47nf2i2mr5r3.streamlit.app/
 
