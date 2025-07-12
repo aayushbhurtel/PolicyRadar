@@ -1,94 +1,60 @@
 import streamlit as st
 import fitz  # PyMuPDF
-import requests
-from bs4 import BeautifulSoup
+import os
+from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
-from dotenv import load_dotenv
-import openai
-import os
+from langchain_core.output_parsers import StrOutputParser
 
-
-# Load environment variables from .env
+# Load API Key from .env
 load_dotenv()
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
-# --- CONFIG ---
-OPENAI_API_KEY = os.getenv(OPENAI_API_KEY)
+# --- Streamlit Config ---
+st.set_page_config(page_title="PolicyRadar", layout="centered")
+st.title("📜 PolicyRadar: Bill Summarizer")
 
-# --- HELPER FUNCTIONS ---
+# --- PDF Text Extraction ---
 def extract_text_from_pdf(uploaded_file):
     doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
-    text = ""
-    for page in doc:
-        text += page.get_text()
-    return text
+    return "\n".join([page.get_text() for page in doc])
 
-def extract_text_from_url(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    return soup.get_text()
+# --- Langchain LLM Configuration using DeepSeek ---
+llm = ChatOpenAI(
+    base_url="https://api.deepseek.com/v1",
+    api_key=DEEPSEEK_API_KEY,
+    model="deepseek-chat",
+    temperature=0.4,
+)
 
-def summarize_text(text):
-    prompt = ChatPromptTemplate.from_template(
-        """
-        You are a helpful civic assistant. Summarize the following policy or bill into:
-        - A one-sentence TL;DR
-        - Three key bullet points
-        - A one-paragraph summary
+# --- Prompt Template ---
+prompt_template = ChatPromptTemplate.from_template("""
+You are a helpful civic assistant. Summarize the following congressional bill using this format:
 
-        Policy:
-        {text}
-        """
-    )
-    chat = ChatOpenAI(openai_api_key=OPENAI_API_KEY)
-    chain = prompt | chat
-    response = chain.invoke({"text": text[:4000]})  # truncate for token limit
-    return response.content
+**TL;DR**: One sentence summary.  
+**Key Points**:  
+- Bullet 1  
+- Bullet 2  
+- Bullet 3  
 
-def generate_questions(text, zip_code):
-    prompt = ChatPromptTemplate.from_template(
-        """
-        You are a civic engagement advisor. Based on this policy, generate three personalized questions
-        that a citizen from ZIP code {zip_code} might ask their representative.
+**Summary**: A short paragraph that explains the bill in plain English.
 
-        Policy:
-        {text}
-        """
-    )
-    chat = ChatOpenAI(openai_api_key=OPENAI_API_KEY)
-    chain = prompt | chat
-    response = chain.invoke({"text": text[:4000], "zip_code": zip_code})
-    return response.content
+Bill:
+{text}
+""")
 
-# --- STREAMLIT UI ---
-st.set_page_config(page_title="PolicyRadar", layout="centered")
-st.title("📜 PolicyRadar: AI for Civic Engagement")
+# --- Create Langchain Summarization Chain ---
+chain = prompt_template | llm | StrOutputParser()
 
-input_method = st.radio("Choose input method:", ["Upload PDF", "Enter URL"])
-text = ""
+# --- UI File Upload ---
+uploaded_file = st.file_uploader("Upload a congressional bill (PDF)", type=["pdf"])
+if uploaded_file:
+    with st.spinner("Extracting text from PDF..."):
+        bill_text = extract_text_from_pdf(uploaded_file)
+        truncated_text = bill_text[:15000]  # prevent token overflow
 
-if input_method == "Upload PDF":
-    uploaded_file = st.file_uploader("Upload a policy or bill PDF", type="pdf")
-    if uploaded_file is not None:
-        text = extract_text_from_pdf(uploaded_file)
-elif input_method == "Enter URL":
-    url = st.text_input("Paste the URL of the policy or bill")
-    if url:
-        try:
-            text = extract_text_from_url(url)
-        except:
-            st.error("Failed to fetch or parse the URL.")
+    with st.spinner("Summarizing with DeepSeek..."):
+        summary = chain.invoke({"text": truncated_text})
 
-if text:
-    st.subheader("Generated TL;DR Summary")
-    summary = summarize_text(text)
+    st.markdown("### 🧠 Summary")
     st.markdown(summary)
-
-    zip_code = st.text_input("Enter your ZIP code for personalized insights:")
-    if zip_code:
-        st.subheader("Questions to Ask Your Representative")
-        questions = generate_questions(text, zip_code)
-        st.markdown(questions)
-
-st.markdown("---")
-st.caption("Built with ❤️ using GPT-4, Streamlit, and LangChain")

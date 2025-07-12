@@ -1,7 +1,7 @@
 streamlit
-PyMuPDF
-requests
-beautifulsoup4
-openai
+openllm
 langchain
-langchain-community
+PyMuPDF
+beautifulsoup4
+requests
+python-dotenv
