@@ -93,16 +93,24 @@ bill_text = None
 # Handle PDF
 if option == "📄 Upload PDF":
     uploaded_file = st.file_uploader("Upload a congressional bill (PDF)", type=["pdf"])
-    if uploaded_file and st.button("🔍 Summarize PDF"):
-        with st.spinner("Extracting text..."):
-            bill_text = extract_text_from_pdf(uploaded_file)
+    if st.button("🔍 Summarize PDF"):
+        if uploaded_file:
+            with st.spinner("Extracting text..."):
+                bill_text = extract_text_from_pdf(uploaded_file)
+        else:
+            st.warning("Please upload a PDF first.")
+
 
 # Handle URL
 if option == "🔗 Enter URL":
     url = st.text_input("Enter a public bill URL")
-    if url and st.button("🔍 Summarize URL"):
-        with st.spinner("Fetching and rendering..."):
-            bill_text = extract_text_from_url(url)
+    if st.button("🔍 Summarize URL"):
+        if url:
+            with st.spinner("Fetching and rendering..."):
+                bill_text = extract_text_from_url(url)
+        else:
+            st.warning("Please enter a valid URL.")
+
 
 # Show summary
 if bill_text:
