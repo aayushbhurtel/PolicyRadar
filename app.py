@@ -26,7 +26,7 @@ llm = ChatOpenAI(
 summary_prompt = ChatPromptTemplate.from_template("""
 You are a helpful civic assistant. Summarize the following congressional bill using this format:
 
-**TL;DR**: One sentence summary.  
+**One Sentence Summary**: One sentence summary.  
 **Key Points**:  
 - Bullet 1  
 - Bullet 2  
